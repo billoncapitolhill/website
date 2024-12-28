@@ -2,64 +2,175 @@
 <html>
 <head>
     <title>Bill on Capitol Hill</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
+        .bill-card {
+            transition: transform 0.2s;
         }
-        h1 {
-            font-size: 72px;
-        }
-        .x-button {
-            margin-top: 20px;
-            background-color: #000;
-            color: #fff;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.3s;
-        }
-        .x-button:hover {
-            background-color: #333;
-        }
-        .button-container {
-            display: flex;
-            gap: 16px;
-            margin-top: 20px;
-        }
-        .pump-button {
-            background-color: #FF6B6B;
-            color: #fff;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.3s;
-        }
-        .pump-button:hover {
-            background-color: #FF8787;
+        .bill-card:hover {
+            transform: translateY(-5px);
         }
     </style>
 </head>
-<body>
-    <h1>Bill on Capitol Hill</h1>
-    <div class="button-container">
-        <a href="https://x.com/billcapitolhill" class="x-button" target="_blank">
-            Follow on X
-        </a>
-        <a href="https://pump.fun/coin/AcWWoJCFLVxiHCnSBhB1Paz6ZLr4PbeorodEFe5Ypump" class="pump-button" target="_blank">
-            View on Pump
-        </a>
-    </div>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <h1 class="text-2xl font-bold text-gray-800">Bill on Capitol Hill</h1>
+                <div class="flex space-x-4">
+                    <a href="https://x.com/billcapitolhill" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        Follow on X
+                    </a>
+                    <a href="https://pump.fun/coin/AcWWoJCFLVxiHCnSBhB1Paz6ZLr4PbeorodEFe5Ypump" class="text-red-500 hover:text-red-600" target="_blank">
+                        View on Pump
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Search and Filter Section -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" 
+                       id="search"
+                       placeholder="Search bills..." 
+                       class="flex-1 p-2 border rounded-lg">
+                <select id="category" class="p-2 border rounded-lg">
+                    <option value="">All Categories</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="education">Education</option>
+                    <option value="environment">Environment</option>
+                    <option value="economy">Economy</option>
+                    <option value="security">Security</option>
+                </select>
+                <select id="status" class="p-2 border rounded-lg">
+                    <option value="">All Statuses</option>
+                    <option value="introduced">Introduced</option>
+                    <option value="committee">In Committee</option>
+                    <option value="passed">Passed</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Bills Grid -->
+        <div id="bills-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Bills will be dynamically inserted here -->
+        </div>
+
+        <!-- Bill Detail Modal -->
+        <div id="bill-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div id="modal-content">
+                    <!-- Modal content will be dynamically inserted here -->
+                </div>
+                <button onclick="closeModal()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Close
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Bill template function
+        function createBillCard(bill) {
+            return `
+                <div class="bill-card bg-white p-6 rounded-lg shadow-md cursor-pointer" onclick="showBillDetails('${bill.id}')">
+                    <h3 class="text-xl font-semibold mb-2">${bill.title}</h3>
+                    <div class="mb-4">
+                        <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                            ${bill.category}
+                        </span>
+                        <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm ml-2">
+                            ${bill.status}
+                        </span>
+                    </div>
+                    <p class="text-gray-600 mb-4">${bill.summary ? bill.summary.substring(0, 150) + '...' : 'No summary available'}</p>
+                    <div class="text-sm text-gray-500">
+                        Sponsored by: ${bill.sponsor}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Fetch and display bills
+        async function fetchBills(category = '', status = '', searchQuery = '') {
+            try {
+                let url = '/api/bills?';
+                if (category) url += `category=${category}&`;
+                if (status) url += `status=${status}&`;
+                if (searchQuery) url += `q=${searchQuery}`;
+
+                const response = await fetch(url);
+                const bills = await response.json();
+                
+                const container = document.getElementById('bills-container');
+                container.innerHTML = bills.map(bill => createBillCard(bill)).join('');
+            } catch (error) {
+                console.error('Error fetching bills:', error);
+            }
+        }
+
+        // Show bill details
+        async function showBillDetails(billId) {
+            try {
+                const response = await fetch(`/api/bills/${billId}`);
+                const bill = await response.json();
+                
+                const modalContent = document.getElementById('modal-content');
+                modalContent.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-4">${bill.title}</h2>
+                    <div class="mb-4">
+                        <span class="font-semibold">Status:</span> ${bill.status}
+                    </div>
+                    <div class="mb-4">
+                        <span class="font-semibold">Sponsor:</span> ${bill.sponsor}
+                    </div>
+                    <div class="mb-4">
+                        <span class="font-semibold">Introduced:</span> 
+                        ${new Date(bill.introduced_date).toLocaleDateString()}
+                    </div>
+                    <div class="mb-4">
+                        <span class="font-semibold">Summary:</span>
+                        <p class="mt-2">${bill.summary || 'No summary available'}</p>
+                    </div>
+                `;
+                
+                document.getElementById('bill-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error fetching bill details:', error);
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('bill-modal').classList.add('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('search').addEventListener('input', (e) => {
+            const category = document.getElementById('category').value;
+            const status = document.getElementById('status').value;
+            fetchBills(category, status, e.target.value);
+        });
+
+        document.getElementById('category').addEventListener('change', (e) => {
+            const status = document.getElementById('status').value;
+            const searchQuery = document.getElementById('search').value;
+            fetchBills(e.target.value, status, searchQuery);
+        });
+
+        document.getElementById('status').addEventListener('change', (e) => {
+            const category = document.getElementById('category').value;
+            const searchQuery = document.getElementById('search').value;
+            fetchBills(category, e.target.value, searchQuery);
+        });
+
+        // Initial load
+        fetchBills();
+    </script>
 </body>
 </html>
