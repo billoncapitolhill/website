@@ -1,4 +1,4 @@
-import { Bill, Amendment, AISummary } from './client';
+import type { AISummary } from './client';
 
 export const mockSummaries: AISummary[] = [
   {
