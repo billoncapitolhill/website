@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { mockSummaries } from './mockData';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const IS_DEVELOPMENT = import.meta.env.DEV;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,6 +10,29 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add response interceptor for logging
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', {
+      url: response.config.url,
+      method: response.config.method,
+      status: response.status,
+      data: response.data,
+    });
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+    return Promise.reject(error);
+  }
+);
 
 export interface Bill {
   id: string;
@@ -27,7 +50,6 @@ export interface Bill {
   constitutional_authority_text: string;
   url: string;
   amendments: Amendment[];
-  ai_summary: AISummary;
 }
 
 export interface Amendment {
@@ -49,12 +71,22 @@ export interface Amendment {
 export interface AISummary {
   id: string;
   target_id: string;
-  target_type: 'bill' | 'amendment';
+  target_type: string;
   summary: string;
   analysis: string;
-  sentiment: number;
+  perspective: string;
+  key_points: string[];
+  estimated_cost_impact: string;
+  government_growth_analysis: string;
+  market_impact_analysis: string;
+  liberty_impact_analysis: string;
   created_at: string;
   updated_at: string;
+  bill: Bill;
+}
+
+interface SummaryResponse {
+  summaries: AISummary[];
 }
 
 export interface ErrorResponse {
@@ -63,7 +95,7 @@ export interface ErrorResponse {
 
 export const billsApi = {
   getBill: async (congress: number, billType: string, billNumber: string): Promise<Bill> => {
-    if (IS_DEVELOPMENT) {
+    if (USE_MOCK_DATA) {
       // Mock response for development
       const mockBill = mockSummaries.find(s => 
         s.target_type === 'bill' && 
@@ -90,16 +122,15 @@ export const billsApi = {
         constitutional_authority_text: 'Mock constitutional authority',
         url: `https://www.congress.gov/bill/${congress}th-congress/${billType.toLowerCase()}/${billNumber}`,
         amendments: [],
-        ai_summary: mockBill,
       };
     }
     
-    const { data } = await api.get<Bill>(`/bills/${congress}/${billType}/${billNumber}`);
+    const { data } = await api.get<Bill>(`/api/v1/bills/${congress}/${billType}/${billNumber}`);
     return data;
   },
   
   getAmendment: async (congress: number, amendmentType: string, amendmentNumber: number): Promise<Amendment> => {
-    if (IS_DEVELOPMENT) {
+    if (USE_MOCK_DATA) {
       // Mock response for development
       const mockAmendment = mockSummaries.find(s => 
         s.target_type === 'amendment' && 
@@ -127,29 +158,39 @@ export const billsApi = {
       };
     }
     
-    const { data } = await api.get<Amendment>(`/amendments/${congress}/${amendmentType}/${amendmentNumber}`);
+    const { data } = await api.get<Amendment>(`/api/v1/amendments/${congress}/${amendmentType}/${amendmentNumber}`);
     return data;
   },
   
   getRecentSummaries: async (limit: number = 10): Promise<AISummary[]> => {
-    if (IS_DEVELOPMENT) {
+    if (USE_MOCK_DATA) {
       // Return mock data in development
       return mockSummaries.slice(0, limit);
     }
     
-    const { data } = await api.get<AISummary[]>(`/summaries/recent`, {
-      params: { limit },
-    });
-    return data;
+    try {
+      const { data } = await api.get<SummaryResponse>(`/api/v1/summaries/recent`, {
+        params: { limit },
+      });
+
+      // Log the raw response for debugging
+      console.log('Raw summaries response:', data);
+
+      // Return the summaries array from the response
+      return data.summaries || [];
+    } catch (error) {
+      console.error('Error fetching summaries:', error);
+      throw error;
+    }
   },
   
   getProcessingErrors: async (): Promise<ErrorResponse[]> => {
-    if (IS_DEVELOPMENT) {
+    if (USE_MOCK_DATA) {
       // Return empty array in development
       return [];
     }
     
-    const { data } = await api.get<ErrorResponse[]>(`/status/errors`);
+    const { data } = await api.get<ErrorResponse[]>(`/api/v1/status/errors`);
     return data;
   },
 }; 
