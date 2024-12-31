@@ -1,5 +1,5 @@
 import { Box, Grid, Heading, Text, VStack, Button, Alert, AlertIcon, AlertTitle, AlertDescription, List, ListItem, ListIcon, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon } from '@chakra-ui/react';
-import { FaCheckCircle } from 'react-icons/fa';
+import { MdCheckCircle } from 'react-icons/md';
 import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
 import { billsApi } from '../api/client';
@@ -67,6 +67,11 @@ export function HomePage() {
       <Grid templateColumns="repeat(auto-fill, minmax(400px, 1fr))" gap={6}>
         {response.map((summary: AISummary) => {
           const { bill } = summary;
+
+          if (!bill) {
+            return null;
+          }
+
           const path = `/bills/${bill.congress_number}/${bill.bill_type}/${bill.bill_number}`;
 
           return (
@@ -86,10 +91,12 @@ export function HomePage() {
                   </Heading>
                 </Box>
                 
-                <Text fontSize="sm" color="gray.600">
-                  Latest Action ({format(new Date(bill.latest_action_date), 'MMM d, yyyy')}):
-                  <Text as="span" fontWeight="medium"> {bill.latest_action_text}</Text>
-                </Text>
+                {bill && (
+                  <Text fontSize="sm" color="gray.600">
+                    Latest Action ({format(new Date(bill.latest_action_date), 'MMM d, yyyy')}):
+                    <Text as="span" fontWeight="medium"> {bill.latest_action_text}</Text>
+                  </Text>
+                )}
 
                 <Text noOfLines={3}>{summary.summary}</Text>
 
@@ -97,7 +104,7 @@ export function HomePage() {
                   <List spacing={2}>
                     {summary.key_points.map((point, index) => (
                       <ListItem key={index} display="flex">
-                        <ListIcon as={FaCheckCircle} color="green.500" mt={1} />
+                        <ListIcon as={MdCheckCircle} color="green.500" mt={1} />
                         <Text>{point}</Text>
                       </ListItem>
                     ))}

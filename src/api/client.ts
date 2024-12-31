@@ -78,6 +78,12 @@ export interface AISummary {
   sentiment: number;
   created_at: string;
   updated_at: string;
+  key_points: string[];
+  estimated_cost_impact: string;
+  government_growth_analysis: string;
+  market_impact_analysis: string;
+  liberty_impact_analysis: string;
+  bill?: Bill;
 }
 
 interface SummaryResponse {
