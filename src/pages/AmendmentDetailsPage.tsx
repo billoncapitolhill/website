@@ -72,13 +72,21 @@ export function AmendmentDetailsPage() {
               <Text>{amendment.ai_summary.summary}</Text>
             </Box>
             <Box>
-              <Text fontWeight="bold">Analysis</Text>
-              <Text>{amendment.ai_summary.analysis}</Text>
+              <Text fontWeight="bold">Key Points</Text>
+              <Text>{amendment.ai_summary.key_points.join('\n')}</Text>
+            </Box>
+            <Box>
+              <Text fontWeight="bold">Cost Impact</Text>
+              <Text>{amendment.ai_summary.estimated_cost_impact}</Text>
+            </Box>
+            <Box>
+              <Text fontWeight="bold">Market Impact</Text>
+              <Text>{amendment.ai_summary.market_impact_analysis}</Text>
             </Box>
             <Box>
               <Text fontWeight="bold">Sentiment</Text>
-              <Badge colorScheme={amendment.ai_summary.sentiment > 0 ? 'green' : amendment.ai_summary.sentiment < 0 ? 'red' : 'gray'}>
-                {amendment.ai_summary.sentiment > 0 ? 'Positive' : amendment.ai_summary.sentiment < 0 ? 'Negative' : 'Neutral'}
+              <Badge colorScheme="blue">
+                {amendment.ai_summary.perspective}
               </Badge>
             </Box>
           </VStack>

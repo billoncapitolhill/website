@@ -76,13 +76,25 @@ export function BillDetailsPage() {
               <Text>{bill.ai_summary.summary}</Text>
             </Box>
             <Box>
-              <Text fontWeight="bold">Analysis</Text>
-              <Text>{bill.ai_summary.analysis}</Text>
+              <Text fontWeight="bold">Key Points</Text>
+              <Text>{bill.ai_summary.key_points.join('\n')}</Text>
+            </Box>
+            <Box>
+              <Text fontWeight="bold">Cost Impact</Text>
+              <Text>{bill.ai_summary.estimated_cost_impact}</Text>
+            </Box>
+            <Box>
+              <Text fontWeight="bold">Market Impact</Text>
+              <Text>{bill.ai_summary.market_impact_analysis}</Text>
+            </Box>
+            <Box>
+              <Text fontWeight="bold">Liberty Impact</Text>
+              <Text>{bill.ai_summary.liberty_impact_analysis}</Text>
             </Box>
             <Box>
               <Text fontWeight="bold">Sentiment</Text>
-              <Badge colorScheme={bill.ai_summary.sentiment > 0 ? 'green' : bill.ai_summary.sentiment < 0 ? 'red' : 'gray'}>
-                {bill.ai_summary.sentiment > 0 ? 'Positive' : bill.ai_summary.sentiment < 0 ? 'Negative' : 'Neutral'}
+              <Badge colorScheme="blue">
+                {bill.ai_summary.perspective}
               </Badge>
             </Box>
           </VStack>
