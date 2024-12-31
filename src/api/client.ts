@@ -50,6 +50,7 @@ export interface Bill {
   constitutional_authority_text: string;
   url: string;
   amendments: Amendment[];
+  ai_summary: AISummary;
 }
 
 export interface Amendment {
@@ -71,18 +72,12 @@ export interface Amendment {
 export interface AISummary {
   id: string;
   target_id: string;
-  target_type: string;
+  target_type: 'bill' | 'amendment';
   summary: string;
   analysis: string;
-  perspective: string;
-  key_points: string[];
-  estimated_cost_impact: string;
-  government_growth_analysis: string;
-  market_impact_analysis: string;
-  liberty_impact_analysis: string;
+  sentiment: number;
   created_at: string;
   updated_at: string;
-  bill: Bill;
 }
 
 interface SummaryResponse {
@@ -122,6 +117,7 @@ export const billsApi = {
         constitutional_authority_text: 'Mock constitutional authority',
         url: `https://www.congress.gov/bill/${congress}th-congress/${billType.toLowerCase()}/${billNumber}`,
         amendments: [],
+        ai_summary: mockBill,
       };
     }
     
