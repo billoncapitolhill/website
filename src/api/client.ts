@@ -38,6 +38,7 @@ export interface Bill {
   bill_type: string;
   bill_number: number;
   title: string;
+  popular_title?: string;
   description: string;
   origin_chamber: string;
   origin_chamber_code: string;
